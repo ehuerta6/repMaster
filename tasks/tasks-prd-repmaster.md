@@ -123,6 +123,7 @@
 - `next.config.js` - Next.js configuration
 - `tsconfig.json` - TypeScript configuration
 - `jest.config.js` - Jest testing configuration
+- `src/app/globals.css` - Global CSS with TailwindCSS imports and design system variables
 
 ### Test Files
 
