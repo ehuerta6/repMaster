@@ -1,17 +1,18 @@
 // Application constants for RepMaster
+import { env } from './env';
 
 // App Configuration
 export const APP_CONFIG = {
-  name: 'RepMaster',
-  version: '1.0.0',
+  name: env.app.name,
+  version: env.app.version,
   description: 'Minimalist gym tracking app for routines and progress',
 } as const;
 
 // API Configuration
 export const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-  timeout: 10000, // 10 seconds
+  baseUrl: env.supabase.url,
+  anonKey: env.supabase.anonKey,
+  timeout: env.api.timeout,
 } as const;
 
 // Database Configuration
