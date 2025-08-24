@@ -122,7 +122,15 @@
 - `DESIGN_SYSTEM.md` - Comprehensive design system documentation
 - `next.config.js` - Next.js configuration
 - `tsconfig.json` - TypeScript configuration
-- `jest.config.js` - Jest testing configuration
+- `jest.config.js` - Jest testing configuration with Next.js integration
+- `jest.setup.js` - Jest setup file with Next.js mocks
+- `jest.global-setup.js` - Jest global setup for test environment
+- `jest.global-teardown.js` - Jest global teardown for cleanup
+- `.babelrc` - Babel configuration for Jest and Next.js
+- `tsconfig.jest.json` - TypeScript configuration for Jest environment
+- `__mocks__/styleMock.js` - Mock for CSS imports in tests
+- `__mocks__/fileMock.js` - Mock for static asset imports in tests
+- `src/lib/test-utils.tsx` - Testing utilities and custom render function
 - `src/app/globals.css` - Global CSS with TailwindCSS imports and design system variables
 - `.prettierrc` - Prettier configuration for code formatting
 - `.prettierignore` - Prettier ignore patterns
@@ -150,7 +158,7 @@
   - [x] 1.1 Initialize Next.js 14+ project with TypeScript and App Router
   - [x] 1.2 Configure TailwindCSS with custom design system
   - [x] 1.3 Set up ESLint, Prettier, and TypeScript configuration
-  - [ ] 1.4 Configure Jest and React Testing Library
+  - [x] 1.4 Configure Jest and React Testing Library
   - [ ] 1.5 Set up project structure and folder organization
   - [ ] 1.6 Configure Git hooks and commit standards
   - [ ] 1.7 Set up environment variables and configuration files
