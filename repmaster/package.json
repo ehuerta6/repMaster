@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run validate-env && next dev --turbopack",
-    "build": "npm run validate-env && next build --turbopack",
+    "dev": "npm run validate-env && next dev",
+    "build": "npm run validate-env && next build",
     "start": "npm run validate-env && next start",
     "validate-env": "node scripts/validate-env.js",
     "test-supabase": "node scripts/test-supabase.js",

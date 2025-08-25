@@ -3,13 +3,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   // Environment configuration
   env: {
-    CUSTOM_KEY: process.env.NODE_ENV === 'production' ? 'production-value' : 'development-value',
-  },
-
-  // Experimental features
-  experimental: {
-    // Enable server components
-    serverComponentsExternalPackages: [],
+    CUSTOM_KEY:
+      process.env.NODE_ENV === 'production'
+        ? 'production-value'
+        : 'development-value',
   },
 
   // Build configuration

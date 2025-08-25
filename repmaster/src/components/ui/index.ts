@@ -1,8 +1,27 @@
-// UI Components index file for RepMaster
-
+// Export all UI components
 export { Button, buttonVariants } from './Button';
 export { Input, inputVariants } from './Input';
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from './Card';
-export { Loading, LoadingSpinner, LoadingDots, loadingVariants } from './Loading';
-export { ErrorBoundary, useErrorHandler, ErrorFallback } from './ErrorBoundary';
-export { Modal, ModalFooter, useModal } from './Modal';
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from './Card';
+export {
+  Loading,
+  LoadingSpinner,
+  loadingVariants,
+  loadingSpinnerVariants,
+} from './Loading';
+export { ErrorBoundary } from './ErrorBoundary';
+export {
+  Modal,
+  ModalTrigger,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalFooter,
+} from './Modal';

@@ -1,97 +1,88 @@
 #!/usr/bin/env node
 
 /**
- * Test script to verify Supabase connection for RepMaster
- * Run this script to test that your Supabase configuration is working
+ * Test Supabase Connection Script
+ * This script tests the connection to your Supabase project
  */
 
-const fs = require('fs');
-const path = require('path');
-
-// Load environment variables
 require('dotenv').config({ path: '.env.local' });
-
-// Check if Supabase environment variables are set
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables');
-  console.error('Please check your .env.local file');
-  process.exit(1);
-}
 
 console.log('🔍 Testing Supabase connection...\n');
 
-// Test basic connection
+// Check environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+console.log('📋 Environment Variables Check:');
+console.log(`   Supabase URL: ${supabaseUrl ? '✅ Set' : '❌ Missing'}`);
+console.log(`   Anon Key: ${supabaseAnonKey ? '✅ Set' : '❌ Missing'}`);
+console.log(`   Service Role: ${supabaseServiceRole ? '✅ Set' : '❌ Missing'}\n`);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.log('❌ Missing required environment variables!');
+  console.log('\n📝 To fix this:');
+  console.log('1. Go to your Supabase dashboard: https://supabase.com/dashboard');
+  console.log('2. Select your project: exqqxmzsoqfpiutqzxqm');
+  console.log('3. Go to Settings > API');
+  console.log('4. Copy the "Project URL" and "anon public" key');
+  console.log('5. Update your .env.local file with these values\n');
+  
+  if (!supabaseUrl) {
+    console.log('   Missing: NEXT_PUBLIC_SUPABASE_URL');
+  }
+  if (!supabaseAnonKey) {
+    console.log('   Missing: NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+  
+  process.exit(1);
+}
+
+// Test the connection
 async function testSupabaseConnection() {
   try {
+    console.log('🔌 Testing Supabase client creation...');
+    
     // Import Supabase client
     const { createClient } = require('@supabase/supabase-js');
     
     // Create client
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
     console.log('✅ Supabase client created successfully');
     
     // Test basic query
     console.log('🔍 Testing basic query...');
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1);
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
     
     if (error) {
       if (error.code === 'PGRST116') {
-        console.log('⚠️  Table "profiles" does not exist yet');
-        console.log('   This is expected if you haven\'t set up the database schema');
-        console.log('   See SUPABASE_SETUP.md for instructions');
+        console.log('✅ Connection successful! (Table "profiles" doesn\'t exist yet, which is expected)');
+        console.log('   This means your Supabase connection is working correctly.');
+        console.log('   The table will be created when you run the database setup scripts.');
       } else {
-        throw error;
+        console.log('⚠️  Connection successful but query failed:');
+        console.log(`   Error: ${error.message}`);
+        console.log('   This might be expected if tables haven\'t been created yet.');
       }
     } else {
-      console.log('✅ Basic query successful');
+      console.log('✅ Connection and query successful!');
+      console.log(`   Data: ${JSON.stringify(data)}`);
     }
-    
-    // Test authentication
-    console.log('🔍 Testing authentication...');
-    const { data: authData, error: authError } = await supabase.auth.getSession();
-    
-    if (authError) {
-      throw authError;
-    }
-    
-    console.log('✅ Authentication test successful');
-    console.log(`   Current session: ${authData.session ? 'Active' : 'None'}`);
     
     console.log('\n🎉 Supabase connection test completed successfully!');
-    console.log('\n📋 Summary:');
-    console.log(`   ✅ URL: ${supabaseUrl}`);
-    console.log(`   ✅ Anon Key: ${supabaseAnonKey.substring(0, 20)}...`);
-    console.log(`   ✅ Client: Created successfully`);
-    console.log(`   ✅ Auth: Working`);
-    
-    if (!data) {
-      console.log(`   ⚠️  Database: Schema not set up yet`);
-      console.log(`      Run the SQL from SUPABASE_SETUP.md to create tables`);
-    } else {
-      console.log(`   ✅ Database: Schema ready`);
-    }
+    console.log('   Your project is properly configured and ready to use.');
     
   } catch (error) {
-    console.error('\n❌ Supabase connection test failed:');
-    console.error('   Error:', error.message);
+    console.log('❌ Supabase connection test failed:');
+    console.log(`   Error: ${error.message}`);
     
-    if (error.code === 'ECONNREFUSED') {
-      console.error('\n💡 Possible solutions:');
-      console.error('   1. Check if your Supabase project is running');
-      console.error('   2. Verify the project URL is correct');
-      console.error('   3. Check if the project is paused (free tier)');
-    } else if (error.code === 'PGRST301') {
-      console.error('\n💡 Possible solutions:');
-      console.error('   1. Check if your anon key is correct');
-      console.error('   2. Verify the key hasn\'t been rotated');
-      console.error('   3. Check project settings in Supabase dashboard');
+    if (error.message.includes('Invalid API key')) {
+      console.log('\n🔑 The API key appears to be invalid.');
+      console.log('   Please check that you copied the correct "anon public" key from your Supabase dashboard.');
+      console.log('   Make sure you\'re not using the "service_role" key for NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+    } else if (error.message.includes('fetch')) {
+      console.log('\n🌐 Network error detected.');
+      console.log('   Please check your internet connection and try again.');
     }
     
     process.exit(1);

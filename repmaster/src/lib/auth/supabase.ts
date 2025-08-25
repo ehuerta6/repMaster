@@ -1,54 +1,36 @@
 // Supabase client configuration for RepMaster
 import { createClient } from '@supabase/supabase-js';
-import { env } from '@/lib/config/env';
+import { Database } from '@/lib/db/types';
 
-// Validate environment variables before creating client
-if (!env.supabase.url || !env.supabase.anonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Please check your .env.local file.'
-  );
+// Get environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// Validate environment variables
+if (!supabaseUrl) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
+}
+
+if (!supabaseAnonKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
 }
 
 // Create Supabase client
-export const supabase = createClient(env.supabase.url, env.supabase.anonKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Auto refresh token
     autoRefreshToken: true,
-    // Persist session in localStorage
     persistSession: true,
-    // Detect session in URL
     detectSessionInUrl: true,
   },
-  // Global headers
+  db: {
+    schema: 'public',
+  },
   global: {
     headers: {
-      'X-Client-Info': 'repmaster-web',
-    },
-  },
-  // Real-time configuration
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
+      'X-Client-Info': 'repmaster@1.0.0',
     },
   },
 });
 
-// Export types for convenience
-export type { User, Session, AuthError } from '@supabase/supabase-js';
-
-// Helper function to check if Supabase is properly configured
-export const isSupabaseConfigured = (): boolean => {
-  return !!(env.supabase.url && env.supabase.anonKey);
-};
-
-// Helper function to get Supabase URL
-export const getSupabaseUrl = (): string => {
-  return env.supabase.url;
-};
-
-// Helper function to get Supabase anon key
-export const getSupabaseAnonKey = (): string => {
-  return env.supabase.anonKey;
-};
-
+// Export for use in other parts of the application
 export default supabase;

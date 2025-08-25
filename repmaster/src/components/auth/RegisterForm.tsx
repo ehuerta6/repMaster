@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/contexts/AuthContext';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 // Form validation interface
 interface FormErrors {
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-  general?: string;
+  email?: string | undefined;
+  password?: string | undefined;
+  confirmPassword?: string | undefined;
+  general?: string | undefined;
 }
 
 // Form data interface
@@ -26,13 +27,12 @@ interface FormData {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Password validation rules
-const PASSWORD_RULES = {
-  minLength: 8,
-  hasUppercase: /[A-Z]/,
-  hasLowercase: /[a-z]/,
-  hasNumber: /\d/,
-  hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/,
-};
+const PASSWORD_RULES = [
+  /[A-Z]/, // Uppercase letter
+  /[a-z]/, // Lowercase letter
+  /\d/, // Number
+  /[!@#$%^&*(),.?":{}|<>]/, // Special character
+];
 
 export const RegisterForm: React.FC = () => {
   const router = useRouter();
@@ -49,22 +49,10 @@ export const RegisterForm: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Clear errors when form data changes
-  useEffect(() => {
-    if (errors.email || errors.password || errors.confirmPassword) {
-      setErrors(prev => ({
-        ...prev,
-        email: undefined,
-        password: undefined,
-        confirmPassword: undefined,
-      }));
-    }
-  }, [formData.email, formData.password, formData.confirmPassword]);
-
-  // Clear auth error when component mounts or when error changes
+  // Clear errors when auth error changes
   useEffect(() => {
     if (error) {
-      clearError();
+      setErrors(prev => ({ ...prev, general: error }));
     }
   }, [error, clearError]);
 
@@ -78,20 +66,10 @@ export const RegisterForm: React.FC = () => {
   // Validate password strength
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'Password is required';
-    if (password.length < PASSWORD_RULES.minLength) {
-      return `Password must be at least ${PASSWORD_RULES.minLength} characters long`;
-    }
-    if (!PASSWORD_RULES.hasUppercase.test(password)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!PASSWORD_RULES.hasLowercase.test(password)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!PASSWORD_RULES.hasNumber.test(password)) {
-      return 'Password must contain at least one number';
-    }
-    if (!PASSWORD_RULES.hasSpecialChar.test(password)) {
-      return 'Password must contain at least one special character';
+    if (password.length < 8)
+      return 'Password must be at least 8 characters long';
+    if (!PASSWORD_RULES.every(rule => rule.test(password))) {
+      return 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character';
     }
     return undefined;
   };
@@ -104,6 +82,23 @@ export const RegisterForm: React.FC = () => {
     if (!confirmPassword) return 'Please confirm your password';
     if (password !== confirmPassword) return 'Passwords do not match';
     return undefined;
+  };
+
+  const validateForm = (): boolean => {
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const confirmPasswordError = validateConfirmPassword(
+      formData.password,
+      formData.confirmPassword
+    );
+
+    const newErrors: FormErrors = {};
+    if (emailError) newErrors.email = emailError;
+    if (passwordError) newErrors.password = passwordError;
+    if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // Handle form submission
@@ -160,8 +155,20 @@ export const RegisterForm: React.FC = () => {
   };
 
   // Handle input changes
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
   };
 
   // Toggle password visibility
@@ -169,31 +176,31 @@ export const RegisterForm: React.FC = () => {
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  // Password strength indicator
+  // Calculate password strength
   const getPasswordStrength = (
     password: string
   ): { score: number; label: string; color: string } => {
+    if (!password)
+      return { score: 0, label: 'Very Weak', color: 'text-red-500' };
+
     let score = 0;
 
-    if (password.length >= PASSWORD_RULES.minLength) score++;
-    if (PASSWORD_RULES.hasUppercase.test(password)) score++;
-    if (PASSWORD_RULES.hasLowercase.test(password)) score++;
-    if (PASSWORD_RULES.hasNumber.test(password)) score++;
-    if (PASSWORD_RULES.hasSpecialChar.test(password)) score++;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
 
     const strengthMap = {
-      0: { label: 'Very Weak', color: 'bg-red-500' },
-      1: { label: 'Weak', color: 'bg-orange-500' },
-      2: { label: 'Fair', color: 'bg-yellow-500' },
-      3: { label: 'Good', color: 'bg-blue-500' },
-      4: { label: 'Strong', color: 'bg-green-500' },
-      5: { label: 'Very Strong', color: 'bg-green-600' },
+      0: { label: 'Very Weak', color: 'text-red-500' },
+      1: { label: 'Weak', color: 'text-orange-500' },
+      2: { label: 'Fair', color: 'text-yellow-500' },
+      3: { label: 'Good', color: 'text-blue-500' },
+      4: { label: 'Strong', color: 'text-green-500' },
+      5: { label: 'Very Strong', color: 'text-green-600' },
     };
 
-    return {
-      score,
-      ...strengthMap[score as keyof typeof strengthMap],
-    };
+    return { score, ...strengthMap[score as keyof typeof strengthMap] };
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
@@ -213,26 +220,13 @@ export const RegisterForm: React.FC = () => {
           <Input
             label='Email Address'
             type='email'
-            placeholder='Enter your email'
+            name='email'
+            placeholder='Enter your email address'
             value={formData.email}
-            onChange={e => handleInputChange('email', e.target.value)}
+            onChange={handleInputChange}
             error={errors.email}
-            leftIcon={
-              <svg
-                className='w-5 h-5'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207'
-                />
-              </svg>
-            }
-            disabled={isSubmitting}
+            leftIcon={<Mail className='w-4 h-4' />}
+            disabled={loading}
             required
           />
 
@@ -241,69 +235,26 @@ export const RegisterForm: React.FC = () => {
             <Input
               label='Password'
               type={showPassword ? 'text' : 'password'}
-              placeholder='Create a strong password'
+              name='password'
+              placeholder='Enter your password'
               value={formData.password}
-              onChange={e => handleInputChange('password', e.target.value)}
+              onChange={handleInputChange}
               error={errors.password}
-              leftIcon={
-                <svg
-                  className='w-5 h-5'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
-                  />
-                </svg>
-              }
+              leftIcon={<Lock className='w-4 h-4' />}
               rightIcon={
                 <button
                   type='button'
-                  onClick={togglePasswordVisibility}
+                  onClick={() => setShowPassword(!showPassword)}
                   className='text-gray-400 hover:text-gray-600'
                 >
                   {showPassword ? (
-                    <svg
-                      className='w-5 h-5'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={2}
-                        d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21'
-                      />
-                    </svg>
+                    <EyeOff className='w-4 h-4' />
                   ) : (
-                    <svg
-                      className='w-5 h-5'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={2}
-                        d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                      />
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={2}
-                        d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
-                      />
-                    </svg>
+                    <Eye className='w-4 h-4' />
                   )}
                 </button>
               }
-              disabled={isSubmitting}
+              disabled={loading}
               required
             />
 
@@ -313,7 +264,7 @@ export const RegisterForm: React.FC = () => {
                 <div className='flex items-center justify-between text-sm'>
                   <span className='text-gray-600'>Password strength:</span>
                   <span
-                    className={`font-medium ${passwordStrength.color.replace('bg-', 'text-')}`}
+                    className={`font-medium ${passwordStrength.color.replace('text-', 'bg-')}`}
                   >
                     {passwordStrength.label}
                   </span>
@@ -327,31 +278,31 @@ export const RegisterForm: React.FC = () => {
                 <div className='text-xs text-gray-500 space-y-1'>
                   <div className='flex items-center space-x-2'>
                     <span
-                      className={`w-2 h-2 rounded-full ${formData.password.length >= PASSWORD_RULES.minLength ? 'bg-green-500' : 'bg-gray-300'}`}
+                      className={`w-2 h-2 rounded-full ${formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}
                     />
-                    <span>At least {PASSWORD_RULES.minLength} characters</span>
+                    <span>At least 8 characters</span>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <span
-                      className={`w-2 h-2 rounded-full ${PASSWORD_RULES.hasUppercase.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
+                      className={`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
                     />
                     <span>One uppercase letter</span>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <span
-                      className={`w-2 h-2 rounded-full ${PASSWORD_RULES.hasLowercase.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
+                      className={`w-2 h-2 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
                     />
                     <span>One lowercase letter</span>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <span
-                      className={`w-2 h-2 rounded-full ${PASSWORD_RULES.hasNumber.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
+                      className={`w-2 h-2 rounded-full ${/\d/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
                     />
                     <span>One number</span>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <span
-                      className={`w-2 h-2 rounded-full ${PASSWORD_RULES.hasSpecialChar.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
+                      className={`w-2 h-2 rounded-full ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}
                     />
                     <span>One special character</span>
                   </div>
@@ -364,69 +315,26 @@ export const RegisterForm: React.FC = () => {
           <Input
             label='Confirm Password'
             type={showConfirmPassword ? 'text' : 'password'}
+            name='confirmPassword'
             placeholder='Confirm your password'
             value={formData.confirmPassword}
-            onChange={e => handleInputChange('confirmPassword', e.target.value)}
+            onChange={handleInputChange}
             error={errors.confirmPassword}
-            leftIcon={
-              <svg
-                className='w-5 h-5'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                />
-              </svg>
-            }
+            leftIcon={<Lock className='w-4 h-4' />}
             rightIcon={
               <button
                 type='button'
-                onClick={toggleConfirmPasswordVisibility}
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className='text-gray-400 hover:text-gray-600'
               >
                 {showConfirmPassword ? (
-                  <svg
-                    className='w-5 h-5'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21'
-                    />
-                  </svg>
+                  <EyeOff className='w-4 h-4' />
                 ) : (
-                  <svg
-                    className='w-5 h-5'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                    />
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
-                    />
-                  </svg>
+                  <Eye className='w-4 h-4' />
                 )}
               </button>
             }
-            disabled={isSubmitting}
+            disabled={loading}
             required
           />
 

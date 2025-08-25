@@ -135,7 +135,7 @@
 - `jest.setup.js` - Jest setup file with Next.js mocks
 - `jest.global-setup.js` - Jest global setup for test environment
 - `jest.global-teardown.js` - Jest global teardown for cleanup
-- `.babelrc` - Babel configuration for Jest and Next.js
+
 - `tsconfig.jest.json` - TypeScript configuration for Jest environment
 - `__mocks__/styleMock.js` - Mock for CSS imports in tests
 - `__mocks__/fileMock.js` - Mock for static asset imports in tests

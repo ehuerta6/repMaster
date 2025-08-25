@@ -5,16 +5,17 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
 
 const inputVariants = cva(
-  // Base styles
-  'flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+  'block w-full border border-gray-300 rounded-md shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed',
   {
     variants: {
       variant: {
-        default: 'border-gray-300 focus:border-primary focus:ring-primary',
-        error: 'border-red-500 focus:border-red-500 focus:ring-red-500',
-        success: 'border-green-500 focus:border-green-500 focus:ring-green-500',
+        default: 'text-gray-900 bg-white',
+        error:
+          'text-gray-900 bg-white border-red-300 focus:ring-red-500 focus:border-red-500',
+        success:
+          'text-gray-900 bg-white border-green-300 focus:ring-green-500 focus:border-green-500',
       },
-      size: {
+      inputSize: {
         default: 'h-10 px-3 py-2',
         sm: 'h-8 px-2 py-1 text-sm',
         lg: 'h-12 px-4 py-3 text-base',
@@ -27,17 +28,17 @@ const inputVariants = cva(
     },
     defaultVariants: {
       variant: 'default',
-      size: 'default',
+      inputSize: 'default',
       fullWidth: true,
     },
   }
 );
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     VariantProps<typeof inputVariants> {
   label?: string;
-  error?: string;
+  error?: string | undefined;
   helperText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -48,7 +49,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     {
       className,
       variant,
-      size,
+      inputSize,
       fullWidth,
       label,
       error,
@@ -69,21 +70,26 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className='block text-sm font-medium text-gray-700 mb-1'
           >
             {label}
           </label>
         )}
-        <div className="relative">
+        <div className='relative'>
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'>
               {leftIcon}
             </div>
           )}
           <input
             id={inputId}
             className={cn(
-              inputVariants({ variant: inputVariant, size, fullWidth, className }),
+              inputVariants({
+                variant: inputVariant,
+                inputSize,
+                fullWidth,
+                className,
+              }),
               leftIcon && 'pl-10',
               rightIcon && 'pr-10'
             )}
@@ -91,20 +97,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400'>
               {rightIcon}
             </div>
           )}
         </div>
         {error && (
-          <p className="mt-1 text-sm text-red-600" role="alert">
+          <p className='mt-1 text-sm text-red-600' role='alert'>
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">
-            {helperText}
-          </p>
+          <p className='mt-1 text-sm text-gray-500'>{helperText}</p>
         )}
       </div>
     );
