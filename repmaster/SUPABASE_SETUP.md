@@ -5,6 +5,7 @@ This guide explains how to set up and configure Supabase for the RepMaster appli
 ## Overview
 
 RepMaster uses Supabase as its backend service, providing:
+
 - **Authentication**: User registration, login, and session management
 - **Database**: PostgreSQL database for storing user data, routines, and workout history
 - **Real-time**: Live updates for collaborative features
@@ -20,11 +21,13 @@ RepMaster uses Supabase as its backend service, providing:
 ## Step 1: Create Supabase Project
 
 ### 1.1 Sign up/Login to Supabase
+
 1. Go to [supabase.com](https://supabase.com)
 2. Sign up with GitHub, GitLab, or email
 3. Login to your dashboard
 
 ### 1.2 Create New Project
+
 1. Click "New Project"
 2. Choose your organization
 3. Enter project details:
@@ -34,30 +37,34 @@ RepMaster uses Supabase as its backend service, providing:
    - **Pricing Plan**: Start with Free tier
 
 ### 1.3 Wait for Setup
+
 - Database setup takes 1-2 minutes
 - You'll receive an email when ready
 
 ## Step 2: Get Project Credentials
 
 ### 2.1 Access Project Settings
+
 1. In your project dashboard, go to **Settings** → **API**
 2. Copy the following values:
    - **Project URL**: `https://your-project-id.supabase.co`
    - **Anon Public Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
 ### 2.2 Update Environment Variables
+
 1. Open your `.env.local` file
 2. Update the Supabase credentials:
 
 ```bash
 # Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://exqqxmzsoqfpiutqzxqm.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ## Step 3: Configure Authentication
 
 ### 3.1 Enable Email Authentication
+
 1. Go to **Authentication** → **Providers**
 2. Ensure **Email** is enabled
 3. Configure email templates (optional):
@@ -65,6 +72,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    - **Reset password**: Customize password reset email
 
 ### 3.2 Configure Site URL
+
 1. Go to **Authentication** → **URL Configuration**
 2. Set **Site URL**: `http://localhost:3000` (development)
 3. Add **Redirect URLs**:
@@ -73,6 +81,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    - `http://localhost:3000/auth/register`
 
 ### 3.3 Email Settings (Optional)
+
 1. Go to **Authentication** → **Email Templates**
 2. Customize email content and styling
 3. Test email delivery
@@ -80,10 +89,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## Step 4: Database Schema Setup
 
 ### 4.1 Access SQL Editor
+
 1. Go to **SQL Editor** in your project dashboard
 2. Create a new query
 
 ### 4.2 Create Database Tables
+
 The following SQL will create the basic schema for RepMaster:
 
 ```sql
@@ -92,7 +103,7 @@ ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
 
 -- Create custom types
 CREATE TYPE muscle_group AS ENUM (
-  'chest', 'back', 'shoulders', 'biceps', 'triceps', 
+  'chest', 'back', 'shoulders', 'biceps', 'triceps',
   'legs', 'core', 'cardio', 'flexibility'
 );
 
@@ -212,6 +223,7 @@ ALTER TABLE public.workout_sets ENABLE ROW LEVEL SECURITY;
 ```
 
 ### 4.3 Create RLS Policies
+
 After creating tables, set up Row Level Security policies:
 
 ```sql
@@ -242,11 +254,13 @@ CREATE POLICY "Users can delete own routines" ON public.routines
 ## Step 5: Test Configuration
 
 ### 5.1 Validate Environment
+
 ```bash
 npm run validate-env
 ```
 
 ### 5.2 Test Supabase Connection
+
 Create a simple test script to verify the connection:
 
 ```typescript
@@ -255,7 +269,10 @@ import { supabase } from './src/lib/auth/supabase';
 
 async function testConnection() {
   try {
-    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1);
     if (error) throw error;
     console.log('✅ Supabase connection successful!');
   } catch (error) {
@@ -269,16 +286,19 @@ testConnection();
 ## Step 6: Production Configuration
 
 ### 6.1 Update Production Environment
+
 1. Copy `.env.production` to your production environment
 2. Update with production Supabase credentials
 3. Set `NODE_ENV=production`
 
 ### 6.2 Production Site URL
+
 1. In Supabase dashboard, go to **Authentication** → **URL Configuration**
 2. Update **Site URL** to your production domain
 3. Add production redirect URLs
 
 ### 6.3 Database Backups
+
 1. Go to **Settings** → **Database**
 2. Enable **Point in Time Recovery** (PITR)
 3. Set up automated backups
